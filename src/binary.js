@@ -10,10 +10,10 @@ const axios = require("axios");
 const tar = require("tar");
 const rimraf = require("rimraf");
 
-const error = (msg) => {
-  console.error(msg)
+const error = msg => {
+  console.error(msg);
   process.exit(1);
-}
+};
 
 class Binary {
   constructor(url, data) {
@@ -41,7 +41,7 @@ class Binary {
       errors.forEach(error => {
         errorMsg += error;
       });
-      error(errorMsg)
+      error(errorMsg);
     }
     this.url = url;
     this.name = data.name || -1;
@@ -125,7 +125,7 @@ class Binary {
     const result = spawnSync(binaryPath, args, options);
 
     if (result.error) {
-      error(result.error)
+      error(result.error);
     }
 
     process.exit(result.status);
