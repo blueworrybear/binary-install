@@ -10,6 +10,11 @@ const axios = require("axios");
 const tar = require("tar");
 const rimraf = require("rimraf");
 
+const error = (msg) => {
+  console.error(msg)
+  process.exit(1);
+}
+
 class Binary {
   constructor(url, data) {
     if (typeof url !== "string") {
@@ -32,10 +37,11 @@ class Binary {
       errors.push("You must specify either name or installDirectory");
     }
     if (errors.length > 0) {
-      console.error("Your Binary constructor is invalid:");
+      let errorMsg = "Your Binary constructor is invalid:";
       errors.forEach(error => {
-        console.error(error);
+        errorMsg += error;
       });
+      error(errorMsg)
     }
     this.url = url;
     this.name = data.name || -1;
@@ -57,7 +63,7 @@ class Binary {
     if (existsSync(binaryDirectory)) {
       this.binaryDirectory = binaryDirectory;
     } else {
-      throw `You have not installed ${this.name ? this.name : "this package"}`;
+      error(`You have not installed ${this.name ? this.name : "this package"}`);
     }
     return this.binaryDirectory;
   }
@@ -85,7 +91,7 @@ class Binary {
 
     mkdirp.sync(this.binaryDirectory);
 
-    console.log("Downloading release", this.url);
+    console.log(`Downloading release from ${this.url}`);
 
     return axios({ url: this.url, responseType: "stream" })
       .then(res => {
@@ -97,8 +103,7 @@ class Binary {
         );
       })
       .catch(e => {
-        console.error("Error fetching release", e.message);
-        throw e;
+        error(`Error fetching release: ${e.message}`);
       });
   }
 
@@ -120,8 +125,7 @@ class Binary {
     const result = spawnSync(binaryPath, args, options);
 
     if (result.error) {
-      console.error(result.error);
-      process.exit(1);
+      error(result.error)
     }
 
     process.exit(result.status);
