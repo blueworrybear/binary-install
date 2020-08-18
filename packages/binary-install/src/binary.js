@@ -6,6 +6,7 @@ const { spawnSync } = require("child_process");
 const axios = require("axios");
 const tar = require("tar");
 const rimraf = require("rimraf");
+const ProgressBar = require('progress');
 
 const error = msg => {
   console.error(msg);
@@ -92,11 +93,30 @@ class Binary {
 
     return axios({ url: this.url, responseType: "stream" })
       .then(res => {
+        const len = parseInt(res.headers['content-length'], 10);
+        var bar = new ProgressBar('  downloading [:bar] :rate/bps :percent :etas', {
+          complete: '=',
+          incomplete: ' ',
+          width: 20,
+          total: len
+        });
+
+        res.data.on('data', function (chunk) {
+          bar.tick(chunk.length);
+        });
+
+        res.data.on('end', () => {
+          console.log('\n');
+          console.log(
+            `${this.name ? this.name : "Your package"} has been installed!`
+          );
+        });
+
         res.data.pipe(tar.x({ strip: 1, C: this.binaryDirectory }));
       })
       .then(() => {
         console.log(
-          `${this.name ? this.name : "Your package"} has been installed!`
+          `${this.name ? this.name : "Your package"} in now installing`
         );
       })
       .catch(e => {
